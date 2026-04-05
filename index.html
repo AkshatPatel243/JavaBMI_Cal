@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BMI Calculator</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: #f0f4f8;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+      width: 100%;
+      max-width: 440px;
+      overflow: hidden;
+    }
+
+    .card-header {
+      background: #1976d2;
+      color: #fff;
+      text-align: center;
+      padding: 20px 24px 16px;
+    }
+
+    .card-header h1 { font-size: 1.5rem; font-weight: bold; }
+    .card-header p  { font-size: 0.85rem; opacity: 0.85; margin-top: 4px; }
+
+    .card-body { padding: 24px; }
+
+    /* ── Input screen ── */
+    .form-group { margin-bottom: 16px; }
+
+    label {
+      display: block;
+      font-size: 0.875rem;
+      font-weight: bold;
+      color: #333;
+      margin-bottom: 5px;
+    }
+
+    input[type="text"],
+    input[type="number"] {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1.5px solid #ccc;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      transition: border-color 0.2s;
+      outline: none;
+    }
+
+    input:focus { border-color: #1976d2; }
+    input.error  { border-color: #e53935; }
+
+    .error-msg {
+      color: #e53935;
+      font-size: 0.78rem;
+      margin-top: 4px;
+      display: none;
+    }
+
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+    }
+
+    .btn:active { transform: scale(0.98); }
+
+    .btn-primary  { background: #1976d2; color: #fff; margin-top: 8px; }
+    .btn-primary:hover  { background: #1565c0; }
+
+    .btn-secondary { background: #e0e0e0; color: #333; margin-top: 10px; }
+    .btn-secondary:hover { background: #bdbdbd; }
+
+    /* ── Result screen ── */
+    #result-screen { display: none; }
+
+    .result-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      padding: 10px 0;
+      border-bottom: 1px solid #f0f0f0;
+      font-size: 0.95rem;
+    }
+
+    .result-row:last-of-type { border-bottom: none; }
+
+    .result-label { color: #555; font-weight: bold; flex-shrink: 0; margin-right: 12px; }
+    .result-value { color: #222; text-align: right; }
+
+    .bmi-badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-weight: bold;
+      font-size: 0.95rem;
+      color: #fff;
+    }
+
+    .badge-underweight { background: #2196f3; }
+    .badge-normal      { background: #4caf50; }
+    .badge-overweight  { background: #ff9800; }
+    .badge-obese       { background: #e53935; }
+
+    .tip-box {
+      background: #e8f5e9;
+      border-left: 4px solid #4caf50;
+      border-radius: 6px;
+      padding: 12px 14px;
+      margin-top: 16px;
+      font-size: 0.9rem;
+      color: #2e7d32;
+      line-height: 1.5;
+    }
+
+    .tip-box.tip-underweight { background: #e3f2fd; border-color: #2196f3; color: #0d47a1; }
+    .tip-box.tip-overweight  { background: #fff3e0; border-color: #ff9800; color: #e65100; }
+    .tip-box.tip-obese       { background: #fce4ec; border-color: #e53935; color: #b71c1c; }
+
+    /* ── Alert banner ── */
+    .alert {
+      background: #fff3cd;
+      border: 1px solid #ffc107;
+      border-radius: 8px;
+      padding: 10px 14px;
+      margin-bottom: 16px;
+      font-size: 0.875rem;
+      color: #664d03;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+<div class="card">
+
+  <!-- ════ INPUT SCREEN ════ -->
+  <div id="input-screen">
+    <div class="card-header">
+      <h1>BMI Calculator</h1>
+      <p>Enter your details to find out your Body Mass Index</p>
+    </div>
+    <div class="card-body">
+      <div class="alert" id="form-alert"></div>
+
+      <div class="form-group">
+        <label for="name">Name</label>
+        <input type="text" id="name" placeholder="Your name" autocomplete="off" />
+        <div class="error-msg" id="name-err">Please enter your name.</div>
+      </div>
+
+      <div class="form-group">
+        <label for="age">Age</label>
+        <input type="number" id="age" placeholder="e.g. 25" min="1" max="130" autocomplete="off" />
+        <div class="error-msg" id="age-err">Please enter a valid age (1–130).</div>
+      </div>
+
+      <div class="form-group">
+        <label for="height">Height (cm)</label>
+        <input type="number" id="height" placeholder="e.g. 170" min="50" max="300" step="0.1" autocomplete="off" />
+        <div class="error-msg" id="height-err">Please enter a valid height in cm (50–300).</div>
+      </div>
+
+      <div class="form-group">
+        <label for="weight">Weight (kg)</label>
+        <input type="number" id="weight" placeholder="e.g. 65" min="1" max="500" step="0.1" autocomplete="off" />
+        <div class="error-msg" id="weight-err">Please enter a valid weight in kg (1–500).</div>
+      </div>
+
+      <button class="btn btn-primary" id="calculate-btn">Calculate BMI</button>
+    </div>
+  </div>
+
+  <!-- ════ RESULT SCREEN ════ -->
+  <div id="result-screen">
+    <div class="card-header">
+      <h1>Your BMI Results</h1>
+      <p>Here is a summary based on the values you entered</p>
+    </div>
+    <div class="card-body">
+      <div class="result-row">
+        <span class="result-label">Name</span>
+        <span class="result-value" id="res-name"></span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Age</span>
+        <span class="result-value" id="res-age"></span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Height</span>
+        <span class="result-value" id="res-height"></span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Weight</span>
+        <span class="result-value" id="res-weight"></span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">BMI</span>
+        <span class="result-value" id="res-bmi"></span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Category</span>
+        <span class="result-value"><span class="bmi-badge" id="res-category"></span></span>
+      </div>
+
+      <div class="tip-box" id="res-tip"></div>
+
+      <button class="btn btn-secondary" id="back-btn">Go Back</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // ── BMI logic (mirrors BMICalculator.java) ──────────────────────────────
+  function calculateBMI(heightCm, weightKg) {
+    const hm = heightCm / 100;
+    return weightKg / (hm * hm);
+  }
+
+  function getCategory(bmi) {
+    if (bmi < 18.5) return "Underweight";
+    if (bmi < 25.0) return "Normal";
+    if (bmi < 30.0) return "Overweight";
+    return "Obese";
+  }
+
+  function getHealthTip(category) {
+    const tips = {
+      Underweight: "Eat nutrient-rich foods and consult a doctor to reach a healthy weight.",
+      Normal:      "Great job! Maintain your weight with a balanced diet and regular exercise.",
+      Overweight:  "Consider a balanced diet and moderate exercise to reduce excess weight.",
+      Obese:       "Consult a healthcare professional for a personalised weight-loss plan."
+    };
+    return tips[category] || "Stay healthy with a balanced diet and regular physical activity.";
+  }
+
+  // ── DOM refs ────────────────────────────────────────────────────────────
+  const inputScreen  = document.getElementById("input-screen");
+  const resultScreen = document.getElementById("result-screen");
+  const formAlert    = document.getElementById("form-alert");
+
+  const nameInput   = document.getElementById("name");
+  const ageInput    = document.getElementById("age");
+  const heightInput = document.getElementById("height");
+  const weightInput = document.getElementById("weight");
+
+  // ── Validation helpers ──────────────────────────────────────────────────
+  function setError(input, errId, show) {
+    const errEl = document.getElementById(errId);
+    if (show) {
+      input.classList.add("error");
+      errEl.style.display = "block";
+    } else {
+      input.classList.remove("error");
+      errEl.style.display = "none";
+    }
+  }
+
+  function validateForm() {
+    let valid = true;
+    formAlert.style.display = "none";
+
+    const name   = nameInput.value.trim();
+    const age    = parseFloat(ageInput.value);
+    const height = parseFloat(heightInput.value);
+    const weight = parseFloat(weightInput.value);
+
+    if (!name) {
+      setError(nameInput, "name-err", true); valid = false;
+    } else {
+      setError(nameInput, "name-err", false);
+    }
+
+    if (!ageInput.value.trim() || isNaN(age) || !Number.isInteger(age) || age < 1 || age > 130) {
+      setError(ageInput, "age-err", true); valid = false;
+    } else {
+      setError(ageInput, "age-err", false);
+    }
+
+    if (!heightInput.value.trim() || isNaN(height) || height < 50 || height > 300) {
+      setError(heightInput, "height-err", true); valid = false;
+    } else {
+      setError(heightInput, "height-err", false);
+    }
+
+    if (!weightInput.value.trim() || isNaN(weight) || weight < 1 || weight > 500) {
+      setError(weightInput, "weight-err", true); valid = false;
+    } else {
+      setError(weightInput, "weight-err", false);
+    }
+
+    return valid;
+  }
+
+  // ── Calculate button ────────────────────────────────────────────────────
+  document.getElementById("calculate-btn").addEventListener("click", function () {
+    if (!validateForm()) return;
+
+    const name     = nameInput.value.trim();
+    const age      = parseInt(ageInput.value, 10);
+    const height   = parseFloat(heightInput.value);
+    const weight   = parseFloat(weightInput.value);
+    const bmi      = calculateBMI(height, weight);
+    const category = getCategory(bmi);
+    const tip      = getHealthTip(category);
+
+    document.getElementById("res-name").textContent    = name;
+    document.getElementById("res-age").textContent     = age + " yrs";
+    document.getElementById("res-height").textContent  = height + " cm";
+    document.getElementById("res-weight").textContent  = weight + " kg";
+    document.getElementById("res-bmi").textContent     = bmi.toFixed(2);
+
+    const catEl = document.getElementById("res-category");
+    catEl.textContent = category;
+    catEl.className   = "bmi-badge badge-" + category.toLowerCase();
+
+    const tipEl = document.getElementById("res-tip");
+    tipEl.textContent = tip;
+    tipEl.className   = "tip-box tip-" + category.toLowerCase();
+
+    inputScreen.style.display  = "none";
+    resultScreen.style.display = "block";
+  });
+
+  // ── Go Back button ──────────────────────────────────────────────────────
+  document.getElementById("back-btn").addEventListener("click", function () {
+    resultScreen.style.display = "none";
+    inputScreen.style.display  = "block";
+  });
+
+  // ── Clear inline errors on typing ───────────────────────────────────────
+  [
+    [nameInput,   "name-err"],
+    [ageInput,    "age-err"],
+    [heightInput, "height-err"],
+    [weightInput, "weight-err"]
+  ].forEach(([el, errId]) => {
+    el.addEventListener("input", () => setError(el, errId, false));
+  });
+</script>
+
+</body>
+</html>
